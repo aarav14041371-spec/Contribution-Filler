@@ -1,0 +1,33 @@
+name: Daily Auto-Commit
+
+on:
+  # تنظیم زمانبندی: هر روز در ساعت 00:00 UTC (حدود 3:30 صبح به وقت ایران) اجرا می‌شود.
+  schedule:
+    - cron: '0 0 * * *'
+  # اجازه اجرای دستی (در صورتی که خواستید همین الان تست کنید)
+  workflow_dispatch:
+
+jobs:
+  auto_commit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Update README with current date/time
+        # دستور Bash: یک متن را به انتهای فایل README.md اضافه می‌کند
+        run: echo "Last automated activity on: $(date)" >> README.md
+          
+      - name: Configure Git
+        run: |
+          # این تنظیمات شناسه‌ی ربات گیت‌هاب را برای کامیت استفاده می‌کند
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          
+      - name: Commit and Push changes
+        run: |
+          git add README.md
+          # این خط مطمئن می‌شود که اگر تغییری نبود، کامیت بیهوده نزند
+          git diff-index --quiet HEAD || git commit -m "Automated daily activity: $(date +%Y-%m-%d)"
+          git push
